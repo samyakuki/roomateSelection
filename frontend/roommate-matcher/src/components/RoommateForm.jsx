@@ -7,6 +7,7 @@ import {
   Typography,
   Paper,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const RoommateForm = () => {
   const [form, setForm] = useState({
@@ -19,15 +20,31 @@ const RoommateForm = () => {
     study: "",
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted form data:", form);
-    alert("Form submitted! Check the console.");
-    // Later: send this data to backend
+
+    try {
+      const res = await fetch("http://localhost:8080/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const matches = await res.json();
+
+      // Navigate to results page with matches data
+      navigate("/results", { state: { matches } });
+    } catch (error) {
+      console.error("Submission failed:", error);
+    }
   };
 
   return (
