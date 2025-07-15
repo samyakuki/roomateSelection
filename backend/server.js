@@ -11,6 +11,9 @@ app.use(cors());
 app.use(express.json());
 
 const userRoutes = require("./routes/users");
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
+
 app.use("/api/users", userRoutes);
 
 mongoose
