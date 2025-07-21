@@ -1,61 +1,44 @@
 import React, { useState } from "react";
-import {
-  Box, Button, TextField, Typography, Paper
-} from "@mui/material";
+import { TextField, Button, Box, Typography, Alert } from "@mui/material";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(""); // Clear error on change
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const res = await fetch("http://localhost:8080/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        alert("Signup successful! Please login.");
-        navigate("/login");
-      } else {
-        alert(data.message);
-      }
+      const res = await axios.post("http://localhost:5000/auth/signup", formData);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("email", res.data.email);
+      navigate("/form");
     } catch (err) {
-      console.error(err);
+      if (err.response?.status === 400 && err.response.data?.message === "User already exists") {
+        setError("User already exists. Please login.");
+      } else {
+        setError("Signup failed. Try again.");
+      }
     }
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-      <Paper sx={{ p: 4, width: "100%", maxWidth: 400 }}>
-        <Typography variant="h5" mb={2}>Signup</Typography>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth label="Name" name="name" margin="normal"
-            value={form.name} onChange={handleChange}
-          />
-          <TextField
-            fullWidth label="Email" name="email" margin="normal"
-            value={form.email} onChange={handleChange}
-          />
-          <TextField
-            fullWidth label="Password" name="password" type="password" margin="normal"
-            value={form.password} onChange={handleChange}
-          />
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-            Signup
-          </Button>
-        </form>
-      </Paper>
+    <Box sx={{ maxWidth: 400, mx: "auto", mt: 5 }}>
+      <Typography variant="h5" gutterBottom>Signup</Typography>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <form onSubmit={handleSubmit}>
+        <TextField fullWidth label="Name" name="name" value={formData.name} onChange={handleChange} sx={{ mb: 2 }} />
+        <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} sx={{ mb: 2 }} />
+        <TextField fullWidth type="password" label="Password" name="password" value={formData.password} onChange={handleChange} sx={{ mb: 2 }} />
+        <Button fullWidth type="submit" variant="contained">Signup</Button>
+      </form>
     </Box>
   );
 };

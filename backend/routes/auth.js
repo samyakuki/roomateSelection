@@ -1,39 +1,34 @@
 const express = require("express");
+const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const router = express.Router();
+const User = require("../models/User");
 
-const User = require("../models/AuthUser");
-
-const JWT_SECRET = "yourSecretKeyHere"; // keep in .env for prod
-
-// Signup Route
+// Signup route
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
+  const existing = await User.findOne({ email });
+  if (existing) return res.status(400).json({ message: "User already exists" });
 
-  const userExists = await User.findOne({ email });
-  if (userExists) return res.status(400).json({ message: "User already exists" });
+  const hashed = await bcrypt.hash(password, 10);
+  const user = new User({ name, email, password: hashed });
+  await user.save();
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = new User({ name, email, password: hashedPassword });
-
-  await newUser.save();
-  res.status(201).json({ message: "User registered successfully" });
+  const token = jwt.sign({ email }, process.env.JWT_SECRET || "secretkey", { expiresIn: "1h" });
+  res.json({ token });
 });
 
-// Login Route
+// Login route
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
   const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
+  if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ message: "Invalid password" });
+  if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-  const token = jwt.sign({ userId: user._id, name: user.name }, JWT_SECRET, { expiresIn: "1h" });
-
-  res.json({ token, name: user.name });
+  const token = jwt.sign({ email }, process.env.JWT_SECRET || "secretkey", { expiresIn: "1h" });
+  res.json({ token });
 });
 
 module.exports = router;

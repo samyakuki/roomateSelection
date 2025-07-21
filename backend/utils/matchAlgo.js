@@ -1,17 +1,34 @@
-function getTopMatches(newUser, allUsers) {
-  const scoreUser = (user) => {
-    let score = 0;
-    if (user.cleanliness === newUser.cleanliness) score++;
-    if (user.sleep === newUser.sleep) score++;
-    if (user.food === newUser.food) score++;
-    if (user.music === newUser.music) score++;
-    if (user.study === newUser.study) score++;
-    return score;
-  };
+function getTopMatches(user, others) {
+  const preferences = [
+    "cleanliness",
+    "sleep",
+    "food",
+    "music",
+    "study",
+    "currentYear",
+    "degree",
+  ];
 
-  const scored = allUsers.map((u) => ({ ...u._doc, score: scoreUser(u) }));
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, 3);
+  const matches = others.map((other) => {
+    let score = 0;
+    preferences.forEach((key) => {
+      if (
+        user[key] !== undefined &&
+        other[key] !== undefined &&
+        user[key] === other[key]
+      ) {
+        score += 100 / preferences.length;
+      }
+    });
+
+    return {
+      ...other.toObject(),
+      score: Math.round(score),
+    };
+  });
+
+  matches.sort((a, b) => b.score - a.score);
+  return matches;
 }
 
-module.exports = { getTopMatches };
+module.exports = getTopMatches;

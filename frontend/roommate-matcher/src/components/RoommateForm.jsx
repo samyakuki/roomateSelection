@@ -1,160 +1,177 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  TextField,
-  MenuItem,
-  Button,
   Box,
+  Button,
+  TextField,
   Typography,
+  Slider,
   Paper,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  FormLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+
+const criteria = ["cleanliness", "sleep", "food", "music", "study"];
 
 const RoommateForm = () => {
-  const [form, setForm] = useState({
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  const [formData, setFormData] = useState({
     name: "",
+    email: "",
     gender: "",
-    cleanliness: "",
-    sleep: "",
-    food: "",
-    music: "",
-    study: "",
+    cleanliness: 5,
+    sleep: 5,
+    food: 5,
+    music: 5,
+    study: 5,
+    currentYear: "",
+    degree: "",
   });
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      setFormData((prev) => ({ ...prev, email: decoded.email }));
+    } catch (err) {
+      console.error("Token error:", err);
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  }, [token, navigate]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSlider = (name) => (_, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const res = await fetch("http://localhost:8080/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await axios.post(
+        "http://localhost:5000/users/form",
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const matches = Array.isArray(res.data) ? res.data : res.data.matches;
+
+      navigate("/results", {
+        state: {
+          currentUser: formData,
+          matches: matches,
         },
-        body: JSON.stringify(form),
       });
-
-      const matches = await res.json();
-
-      // Navigate to results page with matches data
-      navigate("/results", { state: { matches } });
-    } catch (error) {
-      console.error("Submission failed:", error);
+    } catch (err) {
+      console.error("Form submission failed:", err?.response || err);
+      alert("Could not fetch matches. Please try again.");
     }
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-      <Paper elevation={4} sx={{ p: 4, width: "100%", maxWidth: 600 }}>
-        <Typography variant="h4" gutterBottom>
-          Roommate Preferences
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Name"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            margin="normal"
-          />
+    <Box component={Paper} elevation={3} sx={{ maxWidth: 500, mx: "auto", mt: 5, p: 4 }}>
+      <Typography variant="h5" gutterBottom>
+        Fill Your Preferences
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          label="Name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          sx={{ mb: 2 }}
+        />
+        <TextField
+          fullWidth
+          label="Email"
+          name="email"
+          value={formData.email}
+          disabled
+          sx={{ mb: 2 }}
+        />
+        <FormLabel component="legend">Gender</FormLabel>
+        <RadioGroup
+          row
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        >
+          <FormControlLabel value="male" control={<Radio />} label="Male" />
+          <FormControlLabel value="female" control={<Radio />} label="Female" />
+          <FormControlLabel value="other" control={<Radio />} label="Other" />
+        </RadioGroup>
 
-          <TextField
-            select
-            fullWidth
-            label="Gender"
-            name="gender"
-            value={form.gender}
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="male">Male</MenuItem>
-            <MenuItem value="female">Female</MenuItem>
-            <MenuItem value="other">Other</MenuItem>
-          </TextField>
+        {criteria.map((item) => (
+          <Box key={item} sx={{ my: 2 }}>
+            <Typography gutterBottom>
+              {item.charAt(0).toUpperCase() + item.slice(1)} Preference: {formData[item]}
+            </Typography>
+            <Slider
+              value={formData[item]}
+              onChange={handleSlider(item)}
+              step={1}
+              marks
+              min={1}
+              max={10}
+              valueLabelDisplay="auto"
+            />
+          </Box>
+        ))}
 
-          <TextField
-            select
-            fullWidth
-            label="Cleanliness Level"
-            name="cleanliness"
-            value={form.cleanliness}
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Current Year</InputLabel>
+          <Select
+            name="currentYear"
+            value={formData.currentYear}
             onChange={handleChange}
-            margin="normal"
+            required
           >
-            <MenuItem value="neat">Neat</MenuItem>
-            <MenuItem value="average">Average</MenuItem>
-            <MenuItem value="messy">Messy</MenuItem>
-          </TextField>
+            <MenuItem value="1">1</MenuItem>
+            <MenuItem value="2">2</MenuItem>
+            <MenuItem value="3">3</MenuItem>
+            <MenuItem value="4">4</MenuItem>
+          </Select>
+        </FormControl>
 
-          <TextField
-            select
-            fullWidth
-            label="Sleep Schedule"
-            name="sleep"
-            value={form.sleep}
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Degree</InputLabel>
+          <Select
+            name="degree"
+            value={formData.degree}
             onChange={handleChange}
-            margin="normal"
+            required
           >
-            <MenuItem value="early">Early Bird</MenuItem>
-            <MenuItem value="night">Night Owl</MenuItem>
-          </TextField>
+            <MenuItem value="BTech">BTech</MenuItem>
+            <MenuItem value="MTech">MTech</MenuItem>
+            <MenuItem value="PhD">PhD</MenuItem>
+          </Select>
+        </FormControl>
 
-          <TextField
-            select
-            fullWidth
-            label="Food Preference"
-            name="food"
-            value={form.food}
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="veg">Vegetarian</MenuItem>
-            <MenuItem value="nonveg">Non-Vegetarian</MenuItem>
-          </TextField>
-
-          <TextField
-            select
-            fullWidth
-            label="Music Taste"
-            name="music"
-            value={form.music}
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="pop">Pop</MenuItem>
-            <MenuItem value="rock">Rock</MenuItem>
-            <MenuItem value="none">None</MenuItem>
-          </TextField>
-
-          <TextField
-            select
-            fullWidth
-            label="Study Preference"
-            name="study"
-            value={form.study}
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="alone">Alone</MenuItem>
-            <MenuItem value="group">Group</MenuItem>
-          </TextField>
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 3 }}
-            fullWidth
-          >
-            Submit
-          </Button>
-        </form>
-      </Paper>
+        <Button fullWidth type="submit" variant="contained" sx={{ mt: 3 }}>
+          Find Matches
+        </Button>
+      </form>
     </Box>
   );
 };
