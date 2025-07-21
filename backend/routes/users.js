@@ -25,19 +25,25 @@ router.post("/form", authenticate, async (req, res) => {
 
   const all = await User.find({
     gender: updated.gender,
-    degree: updated.degree,         // ✅ FIXED TYPO
+    degree: updated.degree,
     currentYear: updated.currentYear,
     _id: { $ne: updated._id },
-    cleanliness: { $exists: true }, // Ensures profile is filled
+    cleanliness: { $exists: true },
   });
 
-  const matches = getTopMatches(updated, all);
+  // ✅ Fix: Await the async getTopMatches
+  const matches = await getTopMatches(updated, all);
 
+  // ✅ Defensive check
+  if (!Array.isArray(matches)) {
+    return res.status(500).json({ message: "Matching failed" });
+  }
+
+  // Store match history
   updated.matchHistory.unshift({
-    matches: matches.map((match) => match._id),
+    matches: matches.map((m) => m._id),
     timestamp: new Date(),
   });
-
   await updated.save();
 
   res.json({ matches });

@@ -10,11 +10,21 @@ import {
   Grid,
 } from "@mui/material";
 
+// ✅ Helper to color score
+const getScoreColor = (score) => {
+  if (score >= 80) return "green";
+  if (score >= 50) return "orange";
+  return "red";
+};
+
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentUser = location.state?.currentUser;
   const matches = location.state?.matches || [];
+
+  // ✅ Optional: Sort by score descending (just in case backend doesn't)
+  const sortedMatches = [...matches].sort((a, b) => b.score - a.score);
 
   const renderPreference = (label, value) => (
     <Typography variant="body2" key={label}>
@@ -28,7 +38,7 @@ const Results = () => {
         Roommate Matching Results
       </Typography>
 
-      {/* Admin / Current User Card */}
+      {/* Current User Card */}
       {currentUser && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" gutterBottom>
@@ -40,6 +50,9 @@ const Results = () => {
               <Typography color="textSecondary">{currentUser.email}</Typography>
               <Typography color="textSecondary">
                 Gender: {currentUser.gender}
+              </Typography>
+              <Typography color="textSecondary">
+                Degree: {currentUser.degree}, Year: {currentUser.currentYear}
               </Typography>
               <Box sx={{ mt: 2 }}>
                 {renderPreference("cleanliness", currentUser.cleanliness)}
@@ -57,11 +70,11 @@ const Results = () => {
       <Typography variant="h6" gutterBottom>
         Top Matches
       </Typography>
-      {matches.length === 0 ? (
+      {sortedMatches.length === 0 ? (
         <Typography>No matches found.</Typography>
       ) : (
         <Grid container spacing={2}>
-          {matches.map((match, index) => (
+          {sortedMatches.map((match, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card variant="outlined">
                 <CardContent>
@@ -70,13 +83,16 @@ const Results = () => {
                   <Typography color="textSecondary">
                     Gender: {match.gender}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    Similarity Score: <strong>{match.score ?? "N/A"}</strong>
+                  <Typography color="textSecondary">
+                    Degree: {match.degree}, Year: {match.currentYear}
                   </Typography>
-                  
-<Typography color="textSecondary">
-  Degree: {currentUser.degree}, Year: {currentUser.currentYear}
-</Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{ mt: 1, color: getScoreColor(match.score) }}
+                  >
+                    Match Score: <strong>{match.score}%</strong>
+                  </Typography>
 
                   <Box sx={{ mt: 1 }}>
                     {renderPreference("cleanliness", match.cleanliness)}

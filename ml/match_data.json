@@ -1,0 +1,48 @@
+[
+  {
+    "user": {
+      "cleanliness": 4,
+      "sleep": 3,
+      "food": 5,
+      "music": 2,
+      "study": 5,
+      "currentYear": 2,
+      "degree": "btech",
+      "gender": "female"
+    },
+    "other": {
+      "cleanliness": 4,
+      "sleep": 3,
+      "food": 5,
+      "music": 2,
+      "study": 5,
+      "currentYear": 2,
+      "degree": "btech",
+      "gender": "female"
+    },
+    "match": 1
+  },
+  {
+    "user": {
+      "cleanliness": 1,
+      "sleep": 2,
+      "food": 3,
+      "music": 2,
+      "study": 2,
+      "currentYear": 1,
+      "degree": "mtech",
+      "gender": "male"
+    },
+    "other": {
+      "cleanliness": 5,
+      "sleep": 4,
+      "food": 2,
+      "music": 3,
+      "study": 5,
+      "currentYear": 3,
+      "degree": "mtech",
+      "gender": "male"
+    },
+    "match": 0
+  }
+]

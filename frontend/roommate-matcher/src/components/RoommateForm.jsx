@@ -64,27 +64,28 @@ const RoommateForm = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/users/form",
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  e.preventDefault();
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/users/form",
+      formData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      const matches = Array.isArray(res.data) ? res.data : res.data.matches;
+    const matches = res.data.matches;
 
-      navigate("/results", {
-        state: {
-          currentUser: formData,
-          matches: matches,
-        },
-      });
-    } catch (err) {
-      console.error("Form submission failed:", err?.response || err);
-      alert("Could not fetch matches. Please try again.");
-    }
-  };
+    navigate("/results", {
+      state: {
+        currentUser: formData,
+        matches: matches,
+      },
+    });
+  } catch (err) {
+    console.error("Form submission failed:", err?.response || err);
+    alert("Could not fetch matches. Please try again.");
+  }
+};
+
 
   return (
     <Box component={Paper} elevation={3} sx={{ maxWidth: 500, mx: "auto", mt: 5, p: 4 }}>
