@@ -1,22 +1,45 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./components/Home";
+
+import Signup from "./components/Signup";
+import Login from "./components/Login";
 import RoommateForm from "./components/RoommateForm";
 import Results from "./components/Results";
+import RequireAuth from "./components/RequireAuth";
+import Home from "./components/Home"; // optional homepage if you want
+import Navbar from "./components/Navbar";
 
-
-
-function App() {
+const App = () => {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/form" element={<RoommateForm />} />
-        <Route path="/results" element={<Results />} />
+         <Navbar />
 
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/form"
+          element={
+            <RequireAuth>
+              <RoommateForm />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/results"
+          element={
+            <RequireAuth>
+              <Results />
+            </RequireAuth>
+          }
+        />
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
