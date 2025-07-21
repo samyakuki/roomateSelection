@@ -7,7 +7,7 @@ const Home = () => {
     <Container maxWidth="sm">
       <Box textAlign="center" sx={{ mt: { xs: 6, md: 10 } }}>
         <Typography variant="h3" gutterBottom>
-          Welcome to RoomMate Matcher
+          Welcome to Dormie!
         </Typography>
         <Typography variant="subtitle1" sx={{ mb: 4 }}>
           Find the perfect roommate based on your habits and preferences.

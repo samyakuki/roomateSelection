@@ -65,7 +65,7 @@ const Navbar = () => {
             }}
             onClick={() => navigate("/")}
           >
-            RoomMatch
+            Dormie
           </Typography>
 
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
